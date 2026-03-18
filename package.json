@@ -1,0 +1,14 @@
+{
+  "name": "aura-chatbot",
+  "version": "1.0.0",
+  "description": "AI Chatbot using OpenRouter API",
+  "scripts": {
+    "test":  "tsx test.ts",
+    "dev":   "npx serve . --listen 3000",
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "tsx":        "^4.7.0",
+    "typescript": "^5.4.0"
+  }
+}

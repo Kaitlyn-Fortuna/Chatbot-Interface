@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Chatbot</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #0b0c10;
+      --surface:     #13151b;
+      --surface2:    #1c1f29;
+      --border:      #252933;
+      --accent:      #00e5c0;
+      --accent-dim:  rgba(0,229,192,.12);
+      --accent-glow: rgba(0,229,192,.35);
+      --user-bg:     #1e2840;
+      --user-border: #2b3a5e;
+
+      --text:        #e8eaf0;
+      --text-muted:  #6b7280;      --text-dim:    #9ca3af;
+      --danger:      #ff4d6d;
+      --radius:      14px;
+      --font-ui:     'Syne', sans-serif;
+      --font-mono:   'DM Mono', monospace;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-ui);
+      height: 100vh;
+      display: flex;
+      align-items: stretch;
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 260px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 20px 14px;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 10px;
+    }
+
+    .logo-icon {
+      width: 32px; height: 32px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: grid; place-items: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .logo-text {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -.3px;
+      color: var(--text);
+    }
+    .logo-text span { color: var(--accent); }
+
+    .new-chat-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-glow);
+      color: var(--accent);
+      font-family: var(--font-ui);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s, box-shadow .2s;
+      margin-bottom: 10px;
+    }
+    .new-chat-btn:hover {
+      background: rgba(0,229,192,.2);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .sidebar-section {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 6px 10px 4px;
+    }
+
+    .chat-item {
+      padding: 9px 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      color: var(--text-dim);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background .15s, color .15s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .chat-item:hover  { background: var(--surface2); color: var(--text); }
+    .chat-item.active { background: var(--surface2); color: var(--text); }
+    .chat-item .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      flex-shrink: 0;
+    }
+    .chat-item.active .dot { background: var(--accent); }
+
+    .sidebar-footer {
+      margin-top: auto;
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-left: 4px;
+    }
+
+    .avatar {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #3b5bdb, #6a4de0);
+      display: grid; place-items: center;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .avatar-info { flex: 1; overflow: hidden; }
+    .avatar-name { font-size: 13px; font-weight: 600; }
+    .avatar-plan { font-size: 11px; color: var(--accent); font-family: var(--font-mono); }
+
+    /* ── Main ── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ── Header ── */
+    .chat-header {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+    }
+
+    .model-selector {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-family: var(--font-ui);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+    }
+    .model-selector .pulse {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 6px var(--accent);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity:1; transform:scale(1); }
+      50%      { opacity:.5; transform:scale(.8); }
+    }
+
+    .header-actions { display: flex; gap: 8px; }
+    .icon-btn {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      display: grid; place-items: center;
+      cursor: pointer;
+      font-size: 15px;
+      transition: color .15s, background .15s;
+    }
+    .icon-btn:hover { color: var(--text); background: var(--border); }
+
+    /* ── Messages ── */
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 32px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      scroll-behavior: smooth;
+    }
+    .messages::-webkit-scrollbar { width: 4px; }
+    .messages::-webkit-scrollbar-track { background: transparent; }
+    .messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .message-row {
+      display: flex;
+      gap: 14px;
+      padding: 14px 28px;
+      animation: fadeUp .3s ease both;
+    }
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(10px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .message-row:hover { background: rgba(255,255,255,.018); }
+    .message-row.user  { flex-direction: row-reverse; }
+
+    .msg-avatar {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      display: grid; place-items: center;
+      font-size: 14px;
+      font-weight: 700;
+      flex-shrink: 0;
+      align-self: flex-start;
+      margin-top: 2px;
+    }
+    .msg-avatar.ai   { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent-glow); }
+    .msg-avatar.user { background: #1e2840; color: #7ca0f0; border: 1px solid #2b3a5e; }
+
+    .msg-body { flex: 1; max-width: 680px; }
+    .message-row.user .msg-body { display: flex; flex-direction: column; align-items: flex-end; }
+
+    .msg-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .msg-name { font-size: 13px; font-weight: 700; }
+    .msg-name.ai   { color: var(--accent); }
+    .msg-name.user { color: #7ca0f0; }
+    .msg-time { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); }
+
+    .msg-bubble {
+      font-size: 14.5px;
+      line-height: 1.7;
+      color: var(--text);
+    }
+    .message-row.user .msg-bubble {
+      background: var(--user-bg);
+      border: 1px solid var(--user-border);
+      border-radius: 14px 4px 14px 14px;
+      padding: 12px 16px;
+      display: inline-block;
+      max-width: 100%;
+    }
+
+    /* code blocks inside messages */
+    .msg-bubble code {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 1px 6px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--accent);
+    }
+
+    .msg-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+      opacity: 0;
+      transition: opacity .15s;
+    }
+    .message-row:hover .msg-actions { opacity: 1; }
+    .msg-action-btn {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-family: var(--font-ui);
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: color .15s, background .15s;
+    }
+    .msg-action-btn:hover { color: var(--text); background: var(--border); }
+
+    /* typing indicator */
+    .typing-indicator {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 10px 0 4px;
+    }
+    .typing-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: typing 1.4s ease-in-out infinite;
+    }
+    .typing-dot:nth-child(2) { animation-delay: .2s; }
+    .typing-dot:nth-child(3) { animation-delay: .4s; }
+    @keyframes typing {
+      0%,60%,100% { transform:translateY(0); opacity:.4; }
+      30%          { transform:translateY(-6px); opacity:1; }
+    }
+
+    /* ── Input Area ── */
+    .input-area {
+      padding: 16px 24px 22px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+    }
+
+    .input-wrapper {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .input-wrapper:focus-within {
+      border-color: var(--accent-glow);
+      box-shadow: 0 0 0 3px rgba(0,229,192,.08);
+    }
+
+    .input-textarea {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-family: var(--font-ui);
+      font-size: 14.5px;
+      line-height: 1.6;
+      padding: 14px 16px 8px;
+      resize: none;
+      min-height: 52px;
+      max-height: 180px;
+    }
+    .input-textarea::placeholder { color: var(--text-muted); }
+
+    .input-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px 10px;
+    }
+
+    .tool-buttons { display: flex; gap: 4px; }
+    .tool-btn {
+      padding: 5px 10px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-family: var(--font-ui);
+      font-weight: 600;
+      color: var(--text-muted);
+      background: transparent;
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all .15s;
+    }
+    .tool-btn:hover {
+      color: var(--text);
+      background: var(--border);
+      border-color: var(--border);
+    }
+
+    .send-btn {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 18px;
+      border-radius: 9px;
+      background: var(--accent);
+      color: #0b0c10;
+      font-family: var(--font-ui);
+      font-size: 13px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: opacity .2s, box-shadow .2s, transform .1s;
+    }
+    .send-btn:hover {
+      opacity: .9;
+      box-shadow: 0 0 16px var(--accent-glow);
+    }
+    .send-btn:active { transform: scale(.97); }
+
+    .input-hint {
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 10px;
+      font-family: var(--font-mono);
+    }
+    .input-hint kbd {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+    }
+
+    /* ── Empty state ── */
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+      padding: 40px 24px;
+      text-align: center;
+    }
+    .empty-icon {
+      width: 64px; height: 64px;
+      border-radius: 18px;
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-glow);
+      display: grid; place-items: center;
+      font-size: 28px;
+    }
+    .empty-title {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -.4px;
+    }
+    .empty-title span { color: var(--accent); }
+    .empty-sub {
+      font-size: 14px;
+      color: var(--text-muted);
+      max-width: 380px;
+      line-height: 1.6;
+    }
+    .suggestion-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      max-width: 540px;
+      width: 100%;
+    }
+    .suggestion-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      text-align: left;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+    }
+    .suggestion-card:hover {
+      border-color: var(--accent-glow);
+      background: var(--accent-dim);
+    }
+    .suggestion-card .s-icon { font-size: 18px; margin-bottom: 6px; }
+    .suggestion-card .s-title { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+    .suggestion-card .s-sub   { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+  </style>
+</head>
+<body>
+
+<!-- ── Sidebar ── -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">✦</div>
+    <span class="logo-text">Aura<span>AI</span></span>
+  </div>
+
+  <button class="new-chat-btn">
+    <span>＋</span> New Chat
+  </button>
+
+  <div class="sidebar-section">Recent</div>
+  <div class="chat-item active"><span class="dot"></span> Explain black holes simply</div>
+  <div class="chat-item"><span class="dot"></span> Python data pipeline help</div>
+  <div class="chat-item"><span class="dot"></span> Write a cover letter</div>
+  <div class="chat-item"><span class="dot"></span> React component design</div>
+  <div class="chat-item"><span class="dot"></span> SQL query optimization</div>
+
+  <div class="sidebar-section" style="margin-top:8px;">Yesterday</div>
+  <div class="chat-item"><span class="dot"></span> Marketing email draft</div>
+  <div class="chat-item"><span class="dot"></span> Pros and cons of Rust</div>
+
+  <div class="sidebar-footer">
+    <div class="avatar">KF</div>
+    <div class="avatar-info">
+      <div class="avatar-name">Kaitlyn F.</div>
+      <div class="avatar-plan">Student</div>
+    </div>
+    <div class="icon-btn" title="Settings">⚙</div>
+  </div>
+</aside>
+
+<!-- ── Main Chat ── -->
+<main class="main">
+
+  <!-- Header -->
+  <header class="chat-header">
+    <div class="model-selector">
+      <span class="pulse"></span>
+      Aura 3.5 Turbo ▾
+    </div>
+    <div class="header-actions">
+      <div class="icon-btn" title="Share">↗</div>
+      <div class="icon-btn" title="More options">⋯</div>
+    </div>
+  </header>
+
+  <!-- Messages (swap with empty-state to show onboarding) -->
+  <div class="messages" id="messages">
+
+    <!-- AI Message -->
+    <div class="message-row">
+      <div class="msg-avatar ai">✦</div>
+      <div class="msg-body">
+        <div class="msg-meta">
+          <span class="msg-name ai">AuraAI</span>
+          <span class="msg-time">2:14 PM</span>
+        </div>
+        <div class="msg-bubble">
+          Hello! I'm AuraAI — your intelligent assistant. I can help you write, code, analyze, brainstorm, and much more.<br><br>
+          What would you like to work on today?
+        </div>
+        <div class="msg-actions">
+          <button class="msg-action-btn">📋 Copy</button>
+          <button class="msg-action-btn">🔁 Retry</button>
+          <button class="msg-action-btn">👍 Good</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Message -->
+    <div class="message-row user">
+      <div class="msg-avatar user">J</div>
+      <div class="msg-body">
+        <div class="msg-meta">
+          <span class="msg-name user">You</span>
+          <span class="msg-time">2:15 PM</span>
+        </div>
+        <div class="msg-bubble">
+          Can you explain how async/await works in JavaScript with a quick example?
+        </div>
+        <div class="msg-actions">
+          <button class="msg-action-btn">✏️ Edit</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Response -->
+    <div class="message-row">
+      <div class="msg-avatar ai">✦</div>
+      <div class="msg-body">
+        <div class="msg-meta">
+          <span class="msg-name ai">AuraAI</span>
+          <span class="msg-time">2:15 PM</span>
+        </div>
+        <div class="msg-bubble">
+          Great question! <code>async/await</code> is syntactic sugar built on top of Promises that makes asynchronous code read like synchronous code.<br><br>
+          You mark a function with <code>async</code>, and inside it you can use <code>await</code> to pause execution until a Promise resolves — without blocking the main thread.<br><br>
+          Here's a quick example:<br><br>
+          <code>async function getUser() {</code><br>
+          &nbsp;&nbsp;<code>const res = await fetch('/api/user');</code><br>
+          &nbsp;&nbsp;<code>const data = await res.json();</code><br>
+          &nbsp;&nbsp;<code>return data;</code><br>
+          <code>}</code><br><br>
+          If an error occurs, you can wrap it in <code>try/catch</code> just like synchronous code. Clean and readable! 🚀
+        </div>
+        <div class="msg-actions">
+          <button class="msg-action-btn">📋 Copy</button>
+          <button class="msg-action-btn">🔁 Retry</button>
+          <button class="msg-action-btn">👍 Good</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Typing Indicator -->
+    <div class="message-row" id="typing" style="display:none;">
+      <div class="msg-avatar ai">✦</div>
+      <div class="msg-body">
+        <div class="msg-meta">
+          <span class="msg-name ai">AuraAI</span>
+          <span class="msg-time">now</span>
+        </div>
+        <div class="typing-indicator">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Input -->
+  <div class="input-area">
+    <div class="input-wrapper">
+      <textarea
+        class="input-textarea"
+        id="chatInput"
+        placeholder="Ask AuraAI anything…"
+        rows="1"
+        onInput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"
+        onKeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}"
+      ></textarea>
+      <div class="input-toolbar">
+        <div class="tool-buttons">
+          <button class="tool-btn">📎 Attach</button>
+          <button class="tool-btn">🌐 Search</button>
+          <button class="tool-btn">💾 Memory</button>
+        </div>
+        <button class="send-btn" onclick="sendMessage()">
+          Send ↑
+        </button>
+      </div>
+    </div>
+    <p class="input-hint">Press <kbd>Enter</kbd> to send · <kbd>Shift+Enter</kbd> for new line</p>
+  </div>
+
+</main>
+
+<script>
+  function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const text = input.value.trim();
+    if (!text) return;
+
+    const messages = document.getElementById('messages');
+    const typing   = document.getElementById('typing');
+
+    // User bubble
+    const userRow = document.createElement('div');
+    userRow.className = 'message-row user';
+    userRow.innerHTML = `
+      <div class="msg-avatar user">J</div>
+      <div class="msg-body">
+        <div class="msg-meta">
+          <span class="msg-name user">You</span>
+          <span class="msg-time">${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span>
+        </div>
+        <div class="msg-bubble">${text.replace(/</g,'&lt;')}</div>
+      </div>`;
+    messages.insertBefore(userRow, typing);
+
+    input.value = '';
+    input.style.height = 'auto';
+
+    // Show typing
+    typing.style.display = 'flex';
+    messages.scrollTop = messages.scrollHeight;
+
+    // Simulate response
+    setTimeout(() => {
+      typing.style.display = 'none';
+      const aiRow = document.createElement('div');
+      aiRow.className = 'message-row';
+      aiRow.innerHTML = `
+        <div class="msg-avatar ai">✦</div>
+        <div class="msg-body">
+          <div class="msg-meta">
+            <span class="msg-name ai">AuraAI</span>
+            <span class="msg-time">${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span>
+          </div>
+          <div class="msg-bubble">I received your message! Connect me to a real API to generate actual responses. 🤖</div>
+          <div class="msg-actions">
+            <button class="msg-action-btn">📋 Copy</button>
+            <button class="msg-action-btn">🔁 Retry</button>
+            <button class="msg-action-btn">👍 Good</button>
+          </div>
+        </div>`;
+      messages.insertBefore(aiRow, typing);
+      messages.scrollTop = messages.scrollHeight;
+    }, 1600);
+  }
+</script>
+
+</body>
+</html>
