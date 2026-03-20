@@ -3,12 +3,13 @@
   "version": "1.0.0",
   "description": "AI Chatbot using OpenRouter API",
   "scripts": {
-    "test":  "tsx test.ts",
-    "dev":   "npx serve . --listen 3000",
+    "test": "node --import tsx/esm test.ts",
+    "dev": "npx serve . --listen 3000",
     "build": "tsc"
   },
   "devDependencies": {
-    "tsx":        "^4.7.0",
+    "@types/node": "^20.19.37",
+    "tsx": "^4.19.2",
     "typescript": "^5.4.0"
   }
 }
