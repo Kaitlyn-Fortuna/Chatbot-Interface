@@ -14,8 +14,33 @@ const sendBtn = document.getElementById('send-btn');
 const clearBtn = document.getElementById('clear-btn');
 const emptyState = document.getElementById('empty-state');
 const errorMsg = document.getElementById('error-msg');
+const confirmOverlay = document.getElementById('confirm-overlay');
+const confirmMessage = document.getElementById('confirm-message');
+const confirmOk = document.getElementById('confirm-ok');
+const confirmCancel = document.getElementById('confirm-cancel');
 
-// Start
+// --- Confirm dialog helper ---
+function showConfirm(message) {
+  return new Promise(resolve => {
+    confirmMessage.textContent = message;
+    confirmOverlay.classList.add('active');
+
+    function cleanup(result) {
+      confirmOverlay.classList.remove('active');
+      confirmOk.removeEventListener('click', onOk);
+      confirmCancel.removeEventListener('click', onCancel);
+      resolve(result);
+    }
+
+    const onOk = () => cleanup(true);
+    const onCancel = () => cleanup(false);
+
+    confirmOk.addEventListener('click', onOk);
+    confirmCancel.addEventListener('click', onCancel);
+  });
+}
+
+// --- Start / configure ---
 startBtn.addEventListener('click', () => {
   const key = apiKeyInput.value.trim();
   if (!key) { apiKeyInput.focus(); return; }
@@ -30,7 +55,34 @@ apiKeyInput.addEventListener('keydown', e => {
   if (e.key === 'Enter') startBtn.click();
 });
 
-// Send message
+// --- Model badge: warn if chat has started ---
+modelLabel.addEventListener('click', async () => {
+  if (history.length > 0) {
+    const ok = await showConfirm(
+      'Changing the AI model will start a new conversation and clear the current chat. Continue?'
+    );
+    if (!ok) return;
+    clearChat();
+  }
+  setupPanel.style.display = 'flex';
+});
+
+// --- Clear chat button: confirm first ---
+clearBtn.addEventListener('click', async () => {
+  if (history.length === 0) return;
+  const ok = await showConfirm('Clear the entire conversation? This cannot be undone.');
+  if (ok) clearChat();
+});
+
+function clearChat() {
+  history = [];
+  messagesEl.innerHTML = '';
+  messagesEl.appendChild(emptyState);
+  emptyState.style.display = 'flex';
+  errorMsg.textContent = '';
+}
+
+// --- Send message ---
 sendBtn.addEventListener('click', sendMessage);
 inputBox.addEventListener('keydown', e => {
   if (e.key === 'Enter' && !e.shiftKey) {
@@ -45,15 +97,6 @@ inputBox.addEventListener('input', () => {
   inputBox.style.height = Math.min(inputBox.scrollHeight, 160) + 'px';
 });
 
-// Clear chat
-clearBtn.addEventListener('click', () => {
-  history = [];
-  messagesEl.innerHTML = '';
-  messagesEl.appendChild(emptyState);
-  emptyState.style.display = 'flex';
-  errorMsg.textContent = '';
-});
-
 async function sendMessage() {
   const text = inputBox.value.trim();
   if (!text || isLoading) return;
@@ -62,13 +105,11 @@ async function sendMessage() {
   errorMsg.textContent = '';
   emptyState.style.display = 'none';
 
-  // Add user message
   history.push({ role: 'user', content: text });
   appendMessage('user', text);
   inputBox.value = '';
   inputBox.style.height = 'auto';
 
-  // Typing indicator
   const typingEl = appendTyping();
   isLoading = true;
   sendBtn.disabled = true;
@@ -86,10 +127,7 @@ async function sendMessage() {
     });
 
     const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.error?.message || `HTTP ${res.status}`);
-    }
+    if (!res.ok) throw new Error(data.error?.message || `HTTP ${res.status}`);
 
     const reply = data.choices?.[0]?.message?.content || '(empty response)';
     history.push({ role: 'assistant', content: reply });
@@ -99,7 +137,6 @@ async function sendMessage() {
   } catch (err) {
     typingEl.remove();
     errorMsg.textContent = '⚠ ' + err.message;
-    // Remove the last user message from history on error
     history.pop();
   } finally {
     isLoading = false;

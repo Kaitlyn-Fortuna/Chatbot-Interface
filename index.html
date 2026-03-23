@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chat</title>
+  <title>ChatBot</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -23,9 +23,7 @@
         <option value="openai/gpt-4o">GPT-4o</option>
         <option value="anthropic/claude-3.5-haiku">Claude 3.5 Haiku</option>
         <option value="anthropic/claude-3.7-sonnet">Claude 3.7 Sonnet</option>
-        <option value="google/gemini-flash-1.5">Gemini Flash 1.5</option>
         <option value="meta-llama/llama-3.3-70b-instruct">Llama 3.3 70B</option>
-        <option value="mistralai/mistral-7b-instruct">Mistral 7B</option>
       </select>
 
       <button class="btn" id="start-btn">Start Chatting</button>
@@ -33,10 +31,21 @@
     </div>
   </div>
 
+  <!-- Confirm Dialog -->
+  <div id="confirm-overlay">
+    <div class="confirm-card">
+      <p id="confirm-message">Are you sure?</p>
+      <div class="confirm-btns">
+        <button id="confirm-cancel">Cancel</button>
+        <button id="confirm-ok">Confirm</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Header -->
   <header>
-    <div class="logo">chat//</div>
-    <div class="model-badge" id="model-label" onclick="document.getElementById('setup-panel').style.display='flex'">—</div>
+    <div class="logo">ChatBot</div>
+    <div class="model-badge" id="model-label">—</div>
   </header>
 
   <!-- Messages -->
