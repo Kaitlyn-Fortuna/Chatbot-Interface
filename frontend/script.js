@@ -14,10 +14,22 @@ const sendBtn = document.getElementById('send-btn');
 const clearBtn = document.getElementById('clear-btn');
 const emptyState = document.getElementById('empty-state');
 const errorMsg = document.getElementById('error-msg');
+const emptyWarning = document.getElementById('empty-warning');
 const confirmOverlay = document.getElementById('confirm-overlay');
 const confirmMessage = document.getElementById('confirm-message');
 const confirmOk = document.getElementById('confirm-ok');
 const confirmCancel = document.getElementById('confirm-cancel');
+
+// --- Empty message warning helpers ---
+function showEmptyWarning() {
+  emptyWarning.classList.remove('visible');
+  void emptyWarning.offsetWidth; // restart animation
+  emptyWarning.classList.add('visible');
+}
+
+function hideEmptyWarning() {
+  emptyWarning.classList.remove('visible');
+}
 
 // --- Confirm dialog helper ---
 function showConfirm(message) {
@@ -99,7 +111,17 @@ inputBox.addEventListener('input', () => {
 
 async function sendMessage() {
   const text = inputBox.value.trim();
-  if (!text || isLoading) return;
+
+  if (!text) {
+    showEmptyWarning();
+    inputBox.focus();
+    return;
+  }
+
+  if (isLoading) return;
+
+  hideEmptyWarning();
+
   if (!apiKey) { setupPanel.style.display = 'flex'; return; }
 
   errorMsg.textContent = '';
@@ -115,21 +137,16 @@ async function sendMessage() {
   sendBtn.disabled = true;
 
   try {
-    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': window.location.href,
-        'X-Title': 'chat//'
-      },
-      body: JSON.stringify({ model, messages: history, max_tokens: 1024 })
-    });
+    const res = await fetch('http://localhost:5000/api/chat', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ model, messages: history })
+});
 
     const data = await res.json();
     if (!res.ok) throw new Error(data.error?.message || `HTTP ${res.status}`);
 
-    const reply = data.choices?.[0]?.message?.content || '(empty response)';
+    const reply = data.reply || '(empty response)';
     history.push({ role: 'assistant', content: reply });
     typingEl.remove();
     appendMessage('assistant', reply);

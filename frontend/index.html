@@ -5,6 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ChatBot</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    .empty-warning {
+      display: none;
+      color: #c0392b;
+      font-size: 13px;
+      margin-top: 6px;
+      padding: 6px 10px;
+      background: #fdecea;
+      border: 1px solid #f5c6c2;
+      border-radius: 6px;
+      animation: fadeIn 0.2s ease;
+    }
+    .empty-warning.visible {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </head>
 <body>
 
@@ -63,9 +83,52 @@
       <button id="clear-btn" title="Clear chat">Clear</button>
       <button id="send-btn">Send</button>
     </div>
+    <div id="empty-warning" class="empty-warning">Please type a message before sending.</div>
     <div class="error-msg" id="error-msg"></div>
   </footer>
 
   <script src="script.js"></script>
+  <script>
+    (function () {
+      const sendBtn = document.getElementById('send-btn');
+      const inputBox = document.getElementById('input-box');
+      const warning = document.getElementById('empty-warning');
+
+      function showWarning() {
+        warning.classList.remove('visible');
+        void warning.offsetWidth; // reflow to restart animation
+        warning.classList.add('visible');
+      }
+
+      function hideWarning() {
+        warning.classList.remove('visible');
+      }
+
+      function tryIntercept(e) {
+        if (inputBox.value.trim() === '') {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          showWarning();
+          inputBox.focus();
+        } else {
+          hideWarning();
+        }
+      }
+
+      sendBtn.addEventListener('click', tryIntercept, true);
+
+      inputBox.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          if (inputBox.value.trim() === '') {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            showWarning();
+          } else {
+            hideWarning();
+          }
+        }
+      }, true);
+    })();
+  </script>
 </body>
 </html>
