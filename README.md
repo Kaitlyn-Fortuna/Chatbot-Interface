@@ -1,4 +1,5 @@
 Created By: Kaitlyn Fortuna
+
 Date: 04/07/2026
 
 Project Title: FitCoach AI — Personal Fitness Chatbot
