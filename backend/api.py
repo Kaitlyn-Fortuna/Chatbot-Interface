@@ -25,14 +25,14 @@ SYSTEM_PROMPT = {
 @app.route('/api/chat', methods=['POST'])
 def chat():
     try:
-        # 🔴 Check API key
+        # Check API key
         if not API_KEY:
             print("ERROR: Missing API key")
             return jsonify({'error': 'Server missing API key'}), 500
 
         data = request.get_json()
 
-        # 🔴 Validate request
+        # Validate request
         if not data or 'messages' not in data:
             return jsonify({'error': 'No messages provided'}), 400
 
@@ -41,7 +41,7 @@ def chat():
 
         messages = [SYSTEM_PROMPT] + user_messages
 
-        # 🔴 Call OpenRouter safely
+        # Call OpenRouter safely
         try:
             res = requests.post(
                 'https://openrouter.ai/api/v1/chat/completions',
@@ -60,7 +60,7 @@ def chat():
             print("Network error:", e)
             return jsonify({'error': 'Failed to reach AI service'}), 500
 
-        # 🔴 Handle bad response
+        # Handle bad response
         if not res.ok:
             try:
                 err = res.json()
@@ -73,7 +73,7 @@ def chat():
 
         result = res.json()
 
-        # 🔴 Safely extract reply
+        # Safely extract reply
         reply = (
             result.get('choices', [{}])[0]
             .get('message', {})
