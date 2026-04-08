@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ChatBot</title>
+  <title>FitCoach AI</title>
   <link rel="stylesheet" href="style.css">
   <style>
     .empty-warning {
@@ -31,8 +31,8 @@
   <!-- Setup Panel -->
   <div id="setup-panel">
     <div class="setup-card">
-      <h2>Configure API</h2>
-      <p>Enter your OpenRouter API key and choose a model to get started. Your key is stored only in memory.</p>
+      <h2>Welcome to FitCoach AI 💪</h2>
+      <p>Your personal AI fitness coach. Enter your OpenRouter API key and choose a model to get started. Your key is stored only in memory.</p>
 
       <label>OpenRouter API Key</label>
       <input type="password" id="api-key-input" placeholder="sk-or-v1-..." autocomplete="off" />
@@ -64,22 +64,22 @@
 
   <!-- Header -->
   <header>
-    <div class="logo">ChatBot</div>
+    <div class="logo">FitCoach AI 💪</div>
     <div class="model-badge" id="model-label">—</div>
   </header>
 
   <!-- Messages -->
   <div id="messages">
     <div id="empty-state">
-      <div class="big">_</div>
-      <p>Start a conversation</p>
+      <div class="big">💪</div>
+      <p>Ask me about workouts, nutrition, or your fitness goals!</p>
     </div>
   </div>
 
   <!-- Input -->
   <footer>
     <div class="input-row">
-      <textarea id="input-box" placeholder="Type a message..." rows="1"></textarea>
+      <textarea id="input-box" placeholder="Ask about workouts, nutrition, goals..." rows="1"></textarea>
       <button id="clear-btn" title="Clear chat">Clear</button>
       <button id="send-btn">Send</button>
     </div>

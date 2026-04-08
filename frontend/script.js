@@ -20,10 +20,9 @@ const confirmMessage = document.getElementById('confirm-message');
 const confirmOk = document.getElementById('confirm-ok');
 const confirmCancel = document.getElementById('confirm-cancel');
 
-// --- Empty message warning helpers ---
 function showEmptyWarning() {
   emptyWarning.classList.remove('visible');
-  void emptyWarning.offsetWidth; // restart animation
+  void emptyWarning.offsetWidth;
   emptyWarning.classList.add('visible');
 }
 
@@ -31,7 +30,6 @@ function hideEmptyWarning() {
   emptyWarning.classList.remove('visible');
 }
 
-// --- Confirm dialog helper ---
 function showConfirm(message) {
   return new Promise(resolve => {
     confirmMessage.textContent = message;
@@ -52,7 +50,6 @@ function showConfirm(message) {
   });
 }
 
-// --- Start / configure ---
 startBtn.addEventListener('click', () => {
   const key = apiKeyInput.value.trim();
   if (!key) { apiKeyInput.focus(); return; }
@@ -67,7 +64,6 @@ apiKeyInput.addEventListener('keydown', e => {
   if (e.key === 'Enter') startBtn.click();
 });
 
-// --- Model badge: warn if chat has started ---
 modelLabel.addEventListener('click', async () => {
   if (history.length > 0) {
     const ok = await showConfirm(
@@ -79,7 +75,6 @@ modelLabel.addEventListener('click', async () => {
   setupPanel.style.display = 'flex';
 });
 
-// --- Clear chat button: confirm first ---
 clearBtn.addEventListener('click', async () => {
   if (history.length === 0) return;
   const ok = await showConfirm('Clear the entire conversation? This cannot be undone.');
@@ -88,13 +83,13 @@ clearBtn.addEventListener('click', async () => {
 
 function clearChat() {
   history = [];
-  messagesEl.innerHTML = '';
-  messagesEl.appendChild(emptyState);
+  Array.from(messagesEl.children).forEach(child => {
+    if (child.id !== 'empty-state') child.remove();
+  });
   emptyState.style.display = 'flex';
   errorMsg.textContent = '';
 }
 
-// --- Send message ---
 sendBtn.addEventListener('click', sendMessage);
 inputBox.addEventListener('keydown', e => {
   if (e.key === 'Enter' && !e.shiftKey) {
@@ -103,7 +98,6 @@ inputBox.addEventListener('keydown', e => {
   }
 });
 
-// Auto-resize textarea
 inputBox.addEventListener('input', () => {
   inputBox.style.height = 'auto';
   inputBox.style.height = Math.min(inputBox.scrollHeight, 160) + 'px';
@@ -138,10 +132,10 @@ async function sendMessage() {
 
   try {
     const res = await fetch('http://localhost:5000/api/chat', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ model, messages: history })
-});
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model, messages: history })
+    });
 
     const data = await res.json();
     if (!res.ok) throw new Error(data.error?.message || `HTTP ${res.status}`);
