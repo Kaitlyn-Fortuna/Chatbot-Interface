@@ -16,6 +16,7 @@ Technologies used:
 HTML, CSS, JavaScript, Python Flask, and OpenRouter API
 
 Setup and Run Instructions:
+
 Begin by installing the required Python dependencies. Open a terminal and run pip install flask flask-cors requests to install Flask and its dependencies.
 
 Next, add your OpenRouter API key to the backend. Open backend/api.py and replace the placeholder on the API_KEY line with your actual key from openrouter.ai/keys.
