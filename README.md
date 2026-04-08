@@ -4,6 +4,7 @@ Date: 04/07/2026
 Project Title: FitCoach AI — Personal Fitness Chatbot
 
 Description of chatbot functionality:
+
   FitCoach AI is a web-based chatbot that acts as a personal fitness coach and nutritionist.
 Users can ask questions about workout plans, nutrition advice, weight loss, muscle building,
 and general healthy habits. The AI asks about the user's fitness level and goals before
